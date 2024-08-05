@@ -69,9 +69,9 @@ function App() {
   };
 
   useEffect(() => {
-    const eventSource = new EventSource(`${BASE_URL}/events?user_id=${USER_ID}`);
+    const ws = new WebSocket(`ws://localhost:8081/api/ws?user_id=${USER_ID}`);
 
-    eventSource.onmessage = function(event) {
+    ws.onmessage = function(event) {
       const parsedData = JSON.parse(event.data);
       setDownloadStatus((prevStatus) => {
         const existingItemIndex = prevStatus.findIndex(status => status.id === parsedData.id);
@@ -83,18 +83,16 @@ function App() {
           // New downloads should be added to the beginning of the array
           updatedStatus = [parsedData, ...prevStatus];
         }
-        // Sorting is no longer necessary
         return updatedStatus;
       });
     };
 
-    eventSource.onerror = function(error) {
-      console.error('EventSource failed:', error);
-      eventSource.close();
+    ws.onerror = function(error) {
+      console.error('WebSocket error:', error);
     };
 
     return () => {
-      eventSource.close();
+      ws.close();
     };
   }, []);
 
